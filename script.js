@@ -1,5 +1,3 @@
-// Modules
-
 
 //DOM elements
 
@@ -60,8 +58,10 @@ function searchFromIPAddress() {
   ipAddress = searchBar.value
 
   function isValidIPAddress(ip) {
-    const ipAddressRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
-    return ipAddressRegex.test(ip);
+    // regex expression
+    const ipAddressRegex = /^(\d{1,3}\.){3}\d{1,3}$/; 
+    // checks ip address is valid fom regex and returns true/false
+    return ipAddressRegex.test(ip); 
   }
 
   if(isValidIPAddress(ipAddress)){
@@ -76,11 +76,21 @@ function searchFromIPAddress() {
     area.innerHTML = data.city + ", " + data.country_code3;
     timezone.innerHTML = data.time_zone.offset;
 
+    // change map view to show location of ip
+
+    map.setView([data.latitude, data.longitude], 13);
+    L.marker([data.latitude, data.longitude],{icon: myIcon}).addTo(map);
+
     
   })
   .catch(function (error) {
-    console.log(error);
-    // Handle the error
+    if (error.response && error.response.status === 403) {
+      alert("You're not authorized to access this resource ");
+      // Handle the 403 error case
+    } else {
+      console.log('An error occurred:', error.message);
+      // Handle other errors
+    }
   });
     
   } else {
