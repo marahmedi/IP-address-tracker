@@ -1,35 +1,95 @@
+// Modules
+
+
 //DOM elements
 
-const isp = document.getElementById('isp');
-const ip = document.getElementById('ip');
-const timezone = document.getElementById('timezone');
-const area = document.getElementById('location');
+const isp = document.getElementById("isp");
+const ip = document.getElementById("ip");
+const timezone = document.getElementById("timezone");
+const area = document.getElementById("location");
+const searchBar = document.getElementById("ip-address-input");
+const button = document.getElementById("arrow-icon");
 
-// showing the map
-var map = L.map('map').setView([51.505, -0.09], 13);
+// constants
+let latitude
+let longitude
 
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map);
+const API_KEY = 'aa1ab53bf9f940c7bcb66293a76fdd15';
+
+// get user location to update map
 
 // getting the data from api url using axios
-async function getUserData() {
-    try {
-      const response = await axios.get('https://geo.ipify.org/api/v2/country?apiKey=at_R8CDgzHTi6efcdtjg6pcKgucdCTVY&IPv4=8.8.8.8');
-      const data = response.data;
+async function getUserData(url) {
+  try {
+    const response = await axios.get(url);
+    const data = response.data;
 
-      ip.innerHTML = data.ip
-      isp.innerHTML = data.isp
-      area.innerHTML = data.location.region + ', ' + data.location.country
-      timezone.innerHTML = data.location.timezone
-      
-    } catch (error) {
-      console.log('Error => ' + error);
-    }
+    ip.innerHTML = data.ip;
+    isp.innerHTML = data.isp;
+    area.innerHTML = data.location.region + ", " + data.location.country;
+    timezone.innerHTML = data.location.timezone;
+  } catch (error) {
+    console.log("Error => " + error);
   }
-  
-  getUserData();
+}
 
-  // searching for data from ip address
-  
+
+getUserData("https://geo.ipify.org/api/v2/country?apiKey=at_R8CDgzHTi6efcdtjg6pcKgucdCTVY&IPv4=8.8.8.8");
+
+
+// showing the map
+var map = L.map("map").setView([51.5, -0.09], 13);
+map.zoomControl.remove() // removes the default zoom in and out buttons
+
+var myIcon = L.icon({
+  iconUrl: 'images/icon-location.svg',
+});
+
+var marker = L.marker([51.501, -0.09],{icon: myIcon}).addTo(map);
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/{variant}/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri',
+    variant: 'World_Street_Map',
+}).addTo(map);
+
+
+// searching for data from ip address
+
+function searchFromIPAddress() {
+
+  ipAddress = searchBar.value
+
+  function isValidIPAddress(ip) {
+    const ipAddressRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    return ipAddressRegex.test(ip);
+  }
+
+  if(isValidIPAddress(ipAddress)){
+    // display data about that ip address
+
+    axios.get(`https://api.ipgeolocation.io/ipgeo?apiKey=${API_KEY}&ip=${ipAddress}`)
+  .then((response) => {
+    const data = response.data;
+    // Process the data returned by the API
+    ip.innerHTML = data.ip;
+    isp.innerHTML = data.isp;
+    area.innerHTML = data.city + ", " + data.country_code3;
+    timezone.innerHTML = data.time_zone.offset;
+
+    
+  })
+  .catch(function (error) {
+    console.log(error);
+    // Handle the error
+  });
+    
+  } else {
+    // show error message
+    alert('Please enter a valid IP address')
+  }
+    
+}
+
+// Event listeners
+button.addEventListener('click', searchFromIPAddress)
+
